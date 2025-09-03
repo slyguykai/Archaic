@@ -1,0 +1,82 @@
+2025-09-03 11:05:11 | archaic.system | INFO | log_system_info:163 | === Archaic Application Started ===
+2025-09-03 11:05:11 | archaic.system | INFO | log_system_info:164 | Python version: 3.9.6 (default, Apr 30 2025, 02:07:17) 
+[Clang 17.0.0 (clang-1700.0.13.5)]
+2025-09-03 11:05:11 | archaic.system | INFO | log_system_info:165 | Platform: darwin
+2025-09-03 11:05:11 | archaic.system | INFO | log_system_info:166 | Working directory: /Users/bex/Documents/Projects/archaic
+2025-09-03 11:05:11 | archaic.system | INFO | log_system_info:167 | Log directory: /Users/bex/Documents/Projects/archaic/logs
+2025-09-03 11:05:11 | archaic.test | INFO | test_logging_system:36 | Logging system test - INFO level
+2025-09-03 11:05:11 | archaic.test | DEBUG | test_logging_system:37 | Logging system test - DEBUG level
+2025-09-03 11:05:11 | archaic.test | WARNING | test_logging_system:38 | Logging system test - WARNING level
+2025-09-03 11:05:11 | archaic.test | ERROR | log_error:219 | [ERR_20250903_110511_000] ValueError: Test error for tracking (Context: Testing error tracking)
+2025-09-03 11:05:11 | archaic.test | DEBUG | log_error:220 | [ERR_20250903_110511_000] Full traceback:
+Traceback (most recent call last):
+  File "/Users/bex/Documents/Projects/archaic/test_backend.py", line 43, in test_logging_system
+    raise ValueError("Test error for tracking")
+ValueError: Test error for tracking
+
+2025-09-03 11:05:11 | archaic.integration_test | INFO | run_integration_test:304 | Starting integration test
+2025-09-03 11:08:26 | archaic.system | INFO | log_system_info:163 | === Archaic Application Started ===
+2025-09-03 11:08:26 | archaic.system | INFO | log_system_info:164 | Python version: 3.9.6 (default, Apr 30 2025, 02:07:17) 
+[Clang 17.0.0 (clang-1700.0.13.5)]
+2025-09-03 11:08:26 | archaic.system | INFO | log_system_info:165 | Platform: darwin
+2025-09-03 11:08:26 | archaic.system | INFO | log_system_info:166 | Working directory: /Users/bex/Documents/Projects/archaic
+2025-09-03 11:08:26 | archaic.system | INFO | log_system_info:167 | Log directory: /Users/bex/Documents/Projects/archaic/logs
+2025-09-03 11:08:26 | archaic.test | INFO | test_logging_system:36 | Logging system test - INFO level
+2025-09-03 11:08:26 | archaic.test | DEBUG | test_logging_system:37 | Logging system test - DEBUG level
+2025-09-03 11:08:26 | archaic.test | WARNING | test_logging_system:38 | Logging system test - WARNING level
+2025-09-03 11:08:26 | archaic.test | ERROR | log_error:219 | [ERR_20250903_110826_000] ValueError: Test error for tracking (Context: Testing error tracking)
+2025-09-03 11:08:26 | archaic.test | DEBUG | log_error:220 | [ERR_20250903_110826_000] Full traceback:
+Traceback (most recent call last):
+  File "/Users/bex/Documents/Projects/archaic/test_backend.py", line 43, in test_logging_system
+    raise ValueError("Test error for tracking")
+ValueError: Test error for tracking
+
+2025-09-03 11:08:26 | archaic.integration_test | INFO | run_integration_test:304 | Starting integration test
+2025-09-03 12:09:26 | archaic.system | INFO | log_system_info:163 | === Archaic Application Started ===
+2025-09-03 12:09:26 | archaic.system | INFO | log_system_info:164 | Python version: 3.9.6 (default, Apr 30 2025, 02:07:17) 
+[Clang 17.0.0 (clang-1700.0.13.5)]
+2025-09-03 12:09:26 | archaic.system | INFO | log_system_info:165 | Platform: darwin
+2025-09-03 12:09:26 | archaic.system | INFO | log_system_info:166 | Working directory: /Users/bex/Documents/Projects/archaic
+2025-09-03 12:09:26 | archaic.system | INFO | log_system_info:167 | Log directory: /Users/bex/Documents/Projects/archaic/logs
+2025-09-03 12:10:41 | archaic.system | INFO | log_system_info:163 | === Archaic Application Started ===
+2025-09-03 12:10:41 | archaic.system | INFO | log_system_info:164 | Python version: 3.9.6 (default, Apr 30 2025, 02:07:17) 
+[Clang 17.0.0 (clang-1700.0.13.5)]
+2025-09-03 12:10:41 | archaic.system | INFO | log_system_info:165 | Platform: darwin
+2025-09-03 12:10:41 | archaic.system | INFO | log_system_info:166 | Working directory: /Users/bex/Documents/Projects/archaic
+2025-09-03 12:10:41 | archaic.system | INFO | log_system_info:167 | Log directory: /Users/bex/Documents/Projects/archaic/logs
+2025-09-03 12:11:44 | archaic.system | INFO | log_system_info:163 | === Archaic Application Started ===
+2025-09-03 12:11:44 | archaic.system | INFO | log_system_info:164 | Python version: 3.9.6 (default, Apr 30 2025, 02:07:17) 
+[Clang 17.0.0 (clang-1700.0.13.5)]
+2025-09-03 12:11:44 | archaic.system | INFO | log_system_info:165 | Platform: darwin
+2025-09-03 12:11:44 | archaic.system | INFO | log_system_info:166 | Working directory: /Users/bex/Documents/Projects/archaic
+2025-09-03 12:11:44 | archaic.system | INFO | log_system_info:167 | Log directory: /Users/bex/Documents/Projects/archaic/logs
+2025-09-03 12:14:15 | archaic.system | INFO | log_system_info:163 | === Archaic Application Started ===
+2025-09-03 12:14:15 | archaic.system | INFO | log_system_info:164 | Python version: 3.9.6 (default, Apr 30 2025, 02:07:17) 
+[Clang 17.0.0 (clang-1700.0.13.5)]
+2025-09-03 12:14:15 | archaic.system | INFO | log_system_info:165 | Platform: darwin
+2025-09-03 12:14:15 | archaic.system | INFO | log_system_info:166 | Working directory: /Users/bex/Documents/Projects/archaic
+2025-09-03 12:14:15 | archaic.system | INFO | log_system_info:167 | Log directory: /Users/bex/Documents/Projects/archaic/logs
+2025-09-03 12:15:40 | archaic.system | INFO | log_system_info:163 | === Archaic Application Started ===
+2025-09-03 12:15:40 | archaic.system | INFO | log_system_info:164 | Python version: 3.9.6 (default, Apr 30 2025, 02:07:17) 
+[Clang 17.0.0 (clang-1700.0.13.5)]
+2025-09-03 12:15:40 | archaic.system | INFO | log_system_info:165 | Platform: darwin
+2025-09-03 12:15:40 | archaic.system | INFO | log_system_info:166 | Working directory: /Users/bex/Documents/Projects/archaic
+2025-09-03 12:15:40 | archaic.system | INFO | log_system_info:167 | Log directory: /Users/bex/Documents/Projects/archaic/logs
+2025-09-03 12:15:40 | archaic.test | INFO | test_logging_system:36 | Logging system test - INFO level
+2025-09-03 12:15:40 | archaic.test | DEBUG | test_logging_system:37 | Logging system test - DEBUG level
+2025-09-03 12:15:40 | archaic.test | WARNING | test_logging_system:38 | Logging system test - WARNING level
+2025-09-03 12:15:40 | archaic.test | ERROR | log_error:219 | [ERR_20250903_121540_000] ValueError: Test error for tracking (Context: Testing error tracking)
+2025-09-03 12:15:40 | archaic.test | DEBUG | log_error:220 | [ERR_20250903_121540_000] Full traceback:
+Traceback (most recent call last):
+  File "/Users/bex/Documents/Projects/archaic/test_backend.py", line 43, in test_logging_system
+    raise ValueError("Test error for tracking")
+ValueError: Test error for tracking
+
+2025-09-03 12:15:40 | archaic.integration_test | INFO | run_integration_test:304 | Starting integration test
+2025-09-03 12:15:40 | archaic.integration_test | INFO | run_integration_test:354 | Integration test completed successfully
+2025-09-03 12:15:56 | archaic.system | INFO | log_system_info:163 | === Archaic Application Started ===
+2025-09-03 12:15:56 | archaic.system | INFO | log_system_info:164 | Python version: 3.9.6 (default, Apr 30 2025, 02:07:17) 
+[Clang 17.0.0 (clang-1700.0.13.5)]
+2025-09-03 12:15:56 | archaic.system | INFO | log_system_info:165 | Platform: darwin
+2025-09-03 12:15:56 | archaic.system | INFO | log_system_info:166 | Working directory: /Users/bex/Documents/Projects/archaic
+2025-09-03 12:15:56 | archaic.system | INFO | log_system_info:167 | Log directory: /Users/bex/Documents/Projects/archaic/logs

@@ -1,0 +1,3 @@
+2025-09-03 11:05:11 | archaic.test | ERROR | log_error:219 | [ERR_20250903_110511_000] ValueError: Test error for tracking (Context: Testing error tracking)
+2025-09-03 11:08:26 | archaic.test | ERROR | log_error:219 | [ERR_20250903_110826_000] ValueError: Test error for tracking (Context: Testing error tracking)
+2025-09-03 12:15:40 | archaic.test | ERROR | log_error:219 | [ERR_20250903_121540_000] ValueError: Test error for tracking (Context: Testing error tracking)
