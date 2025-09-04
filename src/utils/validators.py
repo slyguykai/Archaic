@@ -198,6 +198,87 @@ class URLValidator:
             return {}
 
 
+_singleton_validator: Optional[URLValidator] = None
+
+
+def get_validator() -> URLValidator:
+    """Return a singleton URLValidator instance."""
+    global _singleton_validator
+    if _singleton_validator is None:
+        _singleton_validator = URLValidator()
+    return _singleton_validator
+
+
+def validate_url(url: str) -> Tuple[bool, str, str]:
+    """
+    Convenience wrapper used by tests/GUI.
+    Returns (is_valid, normalized_url, error_message).
+    """
+    return get_validator().validate_and_normalize(url)
+
+
+def normalize_host(url: str) -> Tuple[bool, str, str]:
+    """
+    Normalize scheme/host for deduplication:
+    - Lowercase scheme/host, strip leading 'www.'
+    - Remove default ports 80/443
+    """
+    try:
+        ok, normalized, err = validate_url(url)
+        if not ok:
+            return ok, "", err
+        parsed = urlparse(normalized)
+        host = parsed.netloc.lower()
+        # Remove default ports
+        if host.endswith(":80"):
+            host = host[:-3]
+        if host.endswith(":443"):
+            host = host[:-4]
+        # Strip leading www.
+        if host.startswith("www."):
+            host = host[4:]
+        # Rebuild URL
+        rebuilt = urlunparse((parsed.scheme.lower(), host, parsed.path, parsed.params, parsed.query, ""))
+        return True, rebuilt, ""
+    except Exception as e:
+        return False, "", str(e)
+
+
+def create_wildcard_patterns(base_url: str) -> Tuple[bool, list, str]:
+    """
+    Build CDX wildcard patterns covering HTTP/HTTPS and host+www variants.
+    Returns (ok, patterns, error).
+    Examples:
+      http*://example.com/articles/* and http*://www.example.com/articles/*
+    """
+    ok, normalized, err = validate_url(base_url)
+    if not ok:
+        return False, [], err
+
+    parsed = urlparse(normalized)
+    host = parsed.netloc.lower()
+    if host.endswith(":80"):
+        host = host[:-3]
+    if host.endswith(":443"):
+        host = host[:-4]
+    bare_host = host[4:] if host.startswith("www.") else host
+
+    # Ensure trailing slash for directory-like paths
+    path = parsed.path
+    if not path:
+        path = "/"
+    elif not path.endswith('/') and '.' not in path.split('/')[-1]:
+        path += '/'
+
+    # Build patterns with http* scheme umbrella
+    patterns = [
+        f"http*://{bare_host}{path}*",
+        f"http*://www.{bare_host}{path}*",
+    ]
+    # De-duplicate if base was already www
+    patterns = list(dict.fromkeys(patterns))
+    return True, patterns, ""
+
 # Global validator instance
 _validator_instance: Optional[URLValidator] = None
 

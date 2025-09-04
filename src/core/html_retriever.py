@@ -22,7 +22,7 @@ class HTMLRetriever:
     - User-agent identification
     """
     
-    def __init__(self, request_delay: float = 1.5, max_retries: int = 3):
+    def __init__(self, request_delay: float = 1.5, max_retries: int = 3, rate_limiter=None):
         """
         Initialize the HTML retriever.
         
@@ -89,6 +89,9 @@ class HTMLRetriever:
                 else:
                     time.sleep(self.request_delay)
                 
+                # Respect global rate limiter if present
+                if self.rate_limiter:
+                    self.rate_limiter.acquire()
                 # Make the request
                 response = self.session.get(wayback_url, timeout=30)
                 response.raise_for_status()
@@ -134,7 +137,9 @@ class HTMLRetriever:
                 if status_code in [404, 403, 410]:
                     self.logger.error(f"Permanent error {status_code} for {original_url}, not retrying")
                     return None
-                    
+                # Backoff more aggressively on 429/5xx
+                if isinstance(status_code, int) and (status_code == 429 or 500 <= status_code < 600):
+                    time.sleep(self.request_delay * (2 ** (attempt + 1)))
                 if attempt >= self.max_retries:
                     self.logger.error(f"Failed to retrieve {original_url} after {self.max_retries + 1} attempts: HTTP {status_code}")
                     return None
@@ -236,6 +241,8 @@ class HTMLRetriever:
             'max_retries': self.max_retries,
             'user_agent': self.session.headers.get('User-Agent')
         }
+        # Optional global rate limiter
+        self.rate_limiter = rate_limiter
     
     def close(self):
         """Close the HTTP session."""
