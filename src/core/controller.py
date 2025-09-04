@@ -19,10 +19,10 @@ from .html_retriever import HTMLRetriever
 from .html_cleaner import HTMLCleaner
 from .pdf_generator import PDFGenerator
 from .assets import AssetCollector, AssetDownloader, AssetRewriter, Asset
-from utils.file_manager import FileManager
-from utils.validators import normalize_host
-from utils.manifest import Manifest, ManifestRecord
-from utils.rate_limiter import TokenBucket
+from src.utils.file_manager import FileManager
+from src.utils.validators import normalize_host
+from src.utils.manifest import Manifest, ManifestRecord
+from src.utils.rate_limiter import TokenBucket
 from urllib.parse import urljoin
 
 

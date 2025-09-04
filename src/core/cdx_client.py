@@ -10,8 +10,7 @@ import time
 from typing import List, Dict, Optional, Set, Tuple
 from urllib.parse import urlparse, urljoin
 import logging
-from utils.validators import create_wildcard_patterns, normalize_host
-
+from src.utils.validators import create_wildcard_patterns, normalize_host
 
 class CDXClient:
     """
