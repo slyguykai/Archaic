@@ -11,6 +11,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
 from src.core.controller import ArchaicController, RunConfig
+from src.core.cdx_client import CDXClient
 
 
 class ArchaicApp(tk.Tk):
@@ -49,6 +50,10 @@ class ArchaicApp(tk.Tk):
         self.singlefile_var = tk.BooleanVar(value=False)
         ttk.Checkbutton(frm, text="Offline assets", variable=self.offline_var).grid(row=4, column=0, sticky="w")
         ttk.Checkbutton(frm, text="Single-file HTML", variable=self.singlefile_var).grid(row=4, column=1, sticky="w")
+        self.skip_completed_var = tk.BooleanVar(value=True)
+        self.only_failed_var = tk.BooleanVar(value=False)
+        ttk.Checkbutton(frm, text="Skip completed (resume)", variable=self.skip_completed_var).grid(row=4, column=2, sticky="w")
+        ttk.Checkbutton(frm, text="Reprocess failed only", variable=self.only_failed_var).grid(row=4, column=3, sticky="w")
 
         # Advanced
         sep = ttk.Separator(frm)
@@ -63,18 +68,26 @@ class ArchaicApp(tk.Tk):
         self.delay_var = tk.DoubleVar(value=1.5)
         delay_entry = ttk.Entry(frm, textvariable=self.delay_var, width=6)
         delay_entry.grid(row=7, column=2, sticky="w", padx=(68,0))
+        ttk.Label(frm, text="Max pages").grid(row=7, column=3, sticky="e")
+        self.maxpages_var = tk.IntVar(value=0)
+        maxpages_entry = ttk.Entry(frm, textvariable=self.maxpages_var, width=8)
+        maxpages_entry.grid(row=7, column=3, sticky="w", padx=(80,0))
 
         # Controls
         ctrl_frame = ttk.Frame(frm)
         ctrl_frame.grid(row=8, column=0, columnspan=3, sticky="ew", pady=8)
+        self.preview_btn = ttk.Button(ctrl_frame, text="Preview", command=self._preview)
         self.start_btn = ttk.Button(ctrl_frame, text="Start", command=self._start)
         self.stop_btn = ttk.Button(ctrl_frame, text="Stop", command=self._stop, state=tk.DISABLED)
         self.open_output_btn = ttk.Button(ctrl_frame, text="Open Output", command=self._open_output)
         self.view_log_btn = ttk.Button(ctrl_frame, text="View Log", command=self._view_log)
-        self.start_btn.pack(side=tk.LEFT)
+        self.open_index_btn = ttk.Button(ctrl_frame, text="Open Index", command=self._open_index)
+        self.preview_btn.pack(side=tk.LEFT)
+        self.start_btn.pack(side=tk.LEFT, padx=8)
         self.stop_btn.pack(side=tk.LEFT, padx=8)
         self.open_output_btn.pack(side=tk.LEFT, padx=8)
         self.view_log_btn.pack(side=tk.LEFT)
+        self.open_index_btn.pack(side=tk.LEFT, padx=8)
 
         # Progress
         self.progress = ttk.Progressbar(frm, mode='indeterminate')
@@ -125,6 +138,10 @@ class ArchaicApp(tk.Tk):
             delay_secs=max(0.1, float(self.delay_var.get() or 1.5)),
             offline_assets=bool(self.offline_var.get()),
             single_file_html=bool(self.singlefile_var.get()),
+            skip_completed=bool(self.skip_completed_var.get()),
+            only_failed=bool(self.only_failed_var.get()),
+            max_pages=int(self.maxpages_var.get() or 0),
+            asset_cache=True,
         )
         # Attach concurrency dynamically
         setattr(cfg, 'concurrency', int(self.conc_var.get() or 1))
@@ -157,6 +174,9 @@ class ArchaicApp(tk.Tk):
                     else:
                         self.status_var.set(str(payload))
                         self._log(payload)
+                elif kind == "preview":
+                    self.progress.stop()
+                    self._show_preview_window(payload)
                 elif kind == "done":
                     self.progress.stop()
                     self.start_btn.config(state=tk.NORMAL)
@@ -211,6 +231,25 @@ class ArchaicApp(tk.Tk):
             self.completed_var.set(int(stats.get('pdf', self.completed_var.get())))
             self.failed_var.set(int(stats.get('failed', self.failed_var.get())))
 
+    def _show_preview_window(self, pages: list):
+        win = tk.Toplevel(self)
+        win.title("Discovery Preview")
+        win.geometry("700x400")
+        total = len(pages)
+        ttk.Label(win, text=f"Discovered {total} pages").pack(anchor='w', padx=10, pady=6)
+        frame = ttk.Frame(win)
+        frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=6)
+        listbox = tk.Listbox(frame)
+        listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        sb = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=listbox.yview)
+        sb.pack(side=tk.RIGHT, fill=tk.Y)
+        listbox.configure(yscrollcommand=sb.set)
+        # Show first 200 entries
+        for rec in pages[:200]:
+            listbox.insert(tk.END, rec.get('url', ''))
+        ttk.Label(win, text="Use 'Max pages' in Advanced to limit processing.").pack(anchor='w', padx=10)
+        ttk.Button(win, text="Close", command=win.destroy).pack(pady=8)
+
     # Utilities
     def _open_output(self):
         import os, subprocess, sys
@@ -239,6 +278,37 @@ class ArchaicApp(tk.Tk):
         except Exception as e:
             messagebox.showerror("View Log", str(e))
 
+    def _open_index(self):
+        import os, subprocess, sys
+        base = self.out_var.get().strip() or 'output'
+        index_path = os.path.abspath(os.path.join(base, 'index.html'))
+        try:
+            if sys.platform.startswith('darwin'):
+                subprocess.Popen(['open', index_path])
+            elif os.name == 'nt':
+                os.startfile(index_path)
+            else:
+                subprocess.Popen(['xdg-open', index_path])
+        except Exception as e:
+            messagebox.showerror("Open Index", str(e))
+
+    def _preview(self):
+        url = self.url_var.get().strip()
+        if not url:
+            messagebox.showerror("Validation", "Please enter a target URL path")
+            return
+        self.status_var.set("Discovering...")
+        self.progress.start(80)
+        def worker():
+            try:
+                cdx = CDXClient()
+                pages = cdx.discover_urls(url)
+                self._queue.put(("progress", {"type": "discovery", "total": len(pages)}))
+                self._queue.put(("preview", pages))
+            except Exception as e:
+                self._queue.put(("error", str(e)))
+        threading.Thread(target=worker, daemon=True).start()
+
     # Settings persistence
     def _settings_path(self):
         import os
@@ -258,6 +328,9 @@ class ArchaicApp(tk.Tk):
             self.singlefile_var.set(bool(data.get('single_file_html', False)))
             self.conc_var.set(int(data.get('concurrency', 1)))
             self.delay_var.set(float(data.get('delay_secs', 1.5)))
+            self.maxpages_var.set(int(data.get('max_pages', 0)))
+            self.skip_completed_var.set(bool(data.get('skip_completed', True)))
+            self.only_failed_var.set(bool(data.get('only_failed', False)))
         except Exception:
             pass
 
@@ -270,6 +343,9 @@ class ArchaicApp(tk.Tk):
             'single_file_html': bool(self.singlefile_var.get()),
             'concurrency': int(self.conc_var.get() or 1),
             'delay_secs': float(self.delay_var.get() or 1.5),
+            'max_pages': int(self.maxpages_var.get() or 0),
+            'skip_completed': bool(self.skip_completed_var.get()),
+            'only_failed': bool(self.only_failed_var.get()),
         }
         try:
             with open(self._settings_path(), 'w', encoding='utf-8') as f:

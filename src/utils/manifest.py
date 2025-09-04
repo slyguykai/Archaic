@@ -58,3 +58,17 @@ class Manifest:
                 done.add(key)
         return done
 
+    def get_status_sets(self):
+        """
+        Compute latest status per (normalized_url, timestamp) and return sets
+        for completed and failed entries.
+        """
+        latest = {}
+        for rec in self.iter_records():
+            key = (rec.get('normalized_url'), rec.get('timestamp'))
+            if not key[0] or not key[1]:
+                continue
+            latest[key] = rec.get('status')
+        completed = {k for k, v in latest.items() if v == 'completed'}
+        failed = {k for k, v in latest.items() if v == 'failed'}
+        return completed, failed

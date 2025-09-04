@@ -20,6 +20,7 @@ from urllib.parse import urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
+from typing import Optional
 
 
 WAYBACK_ASSET_PREFIX = "https://web.archive.org/web/{timestamp}if_/"
@@ -62,6 +63,17 @@ class AssetCollector:
             if href and not href.startswith('data:'):
                 abs_url = urljoin(page_url, href)
                 assets.append(Asset(url=abs_url, type='stylesheet', attr='href'))
+        # Preloads for style/font
+        for link in soup.find_all('link'):
+            rel = link.get('rel')
+            as_attr = link.get('as')
+            href = link.get('href')
+            if not href or href.startswith('data:'):
+                continue
+            rels = [r.lower() for r in rel] if isinstance(rel, list) else ([rel.lower()] if rel else [])
+            if 'preload' in rels and as_attr in ('style', 'font'):
+                abs_url = urljoin(page_url, href)
+                assets.append(Asset(url=abs_url, type='stylesheet' if as_attr=='style' else 'other', attr='href'))
 
         # Picture/source srcset
         for source in soup.find_all('source'):
@@ -122,7 +134,7 @@ class AssetCollector:
 
 
 class AssetDownloader:
-    def __init__(self, request_delay: float = 1.5, max_retries: int = 2, rate_limiter=None):
+    def __init__(self, request_delay: float = 1.5, max_retries: int = 2, rate_limiter=None, cache_dir: Optional[str] = None):
         self.logger = logging.getLogger(__name__)
         self.request_delay = request_delay
         self.max_retries = max_retries
@@ -131,6 +143,7 @@ class AssetDownloader:
         self.session.headers.update({
             'User-Agent': 'Archaic/2.0 (AssetDownloader)'
         })
+        self.cache_dir = cache_dir
 
     def _wayback_url(self, asset_url: str, timestamp: str) -> str:
         return WAYBACK_ASSET_PREFIX.format(timestamp=timestamp) + asset_url
@@ -150,14 +163,51 @@ class AssetDownloader:
             try:
                 if self.rate_limiter:
                     self.rate_limiter.acquire()
-                resp = self.session.get(wayback, timeout=30)
-                resp.raise_for_status()
-                with open(local_path, 'wb') as f:
-                    f.write(resp.content)
-                mapping[a.url] = local_path
+                # Check cache
+                cached_path = self._cached_or_download(a.url, wayback)
+                # Copy from cache (or downloaded temp) to page-local path
+                if cached_path:
+                    import shutil
+                    shutil.copy2(cached_path, local_path)
+                    mapping[a.url] = local_path
             except Exception as e:
                 self.logger.warning(f"Failed to download asset: {a.url} ({e})")
         return mapping
+
+    def _cached_or_download(self, original_url: str, wayback_url: str) -> Optional[str]:
+        """Return path to cached file, downloading into cache if necessary."""
+        if not self.cache_dir:
+            # No cache configured; fetch directly
+            resp = self.session.get(wayback_url, timeout=30)
+            resp.raise_for_status()
+            # Store temporarily alongside cache_dir semantics: create temp in memory
+            # For simplicity return a temp path in cache_dir-like behavior
+            import tempfile
+            fd, tmp = tempfile.mkstemp(prefix='asset_', suffix=self._ext_from_url(original_url))
+            with os.fdopen(fd, 'wb') as f:
+                f.write(resp.content)
+            return tmp
+        os.makedirs(self.cache_dir, exist_ok=True)
+        cache_path = os.path.join(self.cache_dir, self._cache_name(original_url))
+        if os.path.exists(cache_path):
+            return cache_path
+        resp = self.session.get(wayback_url, timeout=30)
+        resp.raise_for_status()
+        with open(cache_path, 'wb') as f:
+            f.write(resp.content)
+        return cache_path
+
+    def _cache_name(self, url: str) -> str:
+        import hashlib
+        h = hashlib.sha1(url.encode('utf-8')).hexdigest()
+        return h + self._ext_from_url(url)
+
+    def _ext_from_url(self, url: str) -> str:
+        p = urlparse(url)
+        _, ext = os.path.splitext(p.path)
+        if ext and len(ext) <= 6:
+            return ext
+        return ''
 
     def _local_name(self, url: str) -> str:
         parsed = urlparse(url)

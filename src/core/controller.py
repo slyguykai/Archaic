@@ -36,6 +36,9 @@ class RunConfig:
     single_file_html: bool = False
     concurrency: int = 1
     max_pages: int = 0  # 0 = no cap
+    skip_completed: bool = True
+    only_failed: bool = False
+    asset_cache: bool = True
 
 
 class ArchaicController:
@@ -50,7 +53,10 @@ class ArchaicController:
         self.cleaner = HTMLCleaner()
         self.pdf = PDFGenerator()
         self.collector = AssetCollector()
-        self.downloader = AssetDownloader(request_delay=config.delay_secs, rate_limiter=self.rate_limiter)
+        # Global asset cache directory
+        assets_cache_dir = os.path.join(str(self.files.base_output_dir), 'assets_cache')
+        self.downloader = AssetDownloader(request_delay=config.delay_secs, rate_limiter=self.rate_limiter,
+                                          cache_dir=assets_cache_dir if getattr(self.config, 'asset_cache', True) else None)
         self.rewriter = AssetRewriter()
         self.files = FileManager(config.output_dir)
         self.manifest = Manifest(config.output_dir)
@@ -78,7 +84,28 @@ class ArchaicController:
                 progress({"type": "discovery_cap", "processing": len(pages)})
 
         # Resume support
-        completed = self.manifest.get_completed_set()
+        # Resume policy
+        completed_set, failed_set = self.manifest.get_status_sets()
+        completed = completed_set
+
+        # Filter pages by resume options
+        if self.config.only_failed:
+            filt = []
+            for page in pages:
+                ok, nurl, _ = normalize_host(page['url'])
+                nkey = (nurl if ok else page['url'], page['timestamp'])
+                # Only keep those currently marked failed and not completed
+                if nkey in failed_set and nkey not in completed_set:
+                    filt.append(page)
+            pages = filt
+        elif self.config.skip_completed:
+            filt = []
+            for page in pages:
+                ok, nurl, _ = normalize_host(page['url'])
+                nkey = (nurl if ok else page['url'], page['timestamp'])
+                if nkey not in completed_set:
+                    filt.append(page)
+            pages = filt
         processed: List[Dict[str, str]] = []
 
         def process_one(idx: int, page: Dict[str, str]) -> Tuple[int, int, int, int]:
